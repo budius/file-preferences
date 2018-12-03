@@ -1,6 +1,7 @@
 package com.sensorberg.filepreferences
 
 import android.content.SharedPreferences
+import org.json.JSONArray
 import org.json.JSONObject
 
 class PreferencesEditor(private val preferences: FilePreferences, private val data: JSONObject) : SharedPreferences.Editor {
@@ -42,7 +43,11 @@ class PreferencesEditor(private val preferences: FilePreferences, private val da
 	override fun putStringSet(key: String, values: MutableSet<String>?): SharedPreferences.Editor {
 		changedKeys.add(key)
 		if (values == null) data.remove(key)
-		else for (value in values) data.put(key, value)
+		else {
+			val array = JSONArray()
+			for (value in values) array.put(value)
+			data.put(key, array)
+		}
 		return this
 	}
 

@@ -7,20 +7,19 @@ import com.sensorberg.executioner.Executioner.UI
 import com.sensorberg.executioner.Executioner.runOn
 import org.json.JSONObject
 import timber.log.Timber
-import java.io.*
+import java.io.File
 import java.util.concurrent.FutureTask
 
-class FilePreferences private constructor(private val file: File) : SharedPreferences {
+class FilePreferences private constructor(private val fileAccess: FileAccess) : SharedPreferences {
 
-	private object lock
+	internal var writeCounter = 0
 
 	private val listeners = mutableSetOf<SharedPreferences.OnSharedPreferenceChangeListener>()
-	private var diskData: String? = null
 
 	private val data: JSONObject by lazy {
-		if (file.exists()) {
-			diskData = getStringFromFile(file)
-			JSONObject(diskData)
+		val data = fileAccess.loadData()
+		if (data != null) {
+			JSONObject(data)
 		} else {
 			JSONObject()
 		}
@@ -32,7 +31,7 @@ class FilePreferences private constructor(private val file: File) : SharedPrefer
 			// that means, we try to load the json (I/O operation) on background,
 			// but SharedPreferences API dictates that all actions can be done synchronously,
 			// so if main thread directly tries to access it, it will have that I/O on main thread
-			Timber.d("Loading ${data.hashCode()} from ${file.absolutePath}")
+			Timber.d("Loading ${data.hashCode()} from $fileAccess")
 		}
 	}
 
@@ -64,15 +63,15 @@ class FilePreferences private constructor(private val file: File) : SharedPrefer
 		return data.optDouble(key, defValue.toDouble()).toFloat()
 	}
 
-	override fun getStringSet(key: String, defValues: MutableSet<String>?): MutableSet<String> {
+	override fun getStringSet(key: String, defValues: MutableSet<String>?): MutableSet<String>? {
 		return if (data.has(key)) {
 			val array = data.optJSONArray(key)
 			val set = mutableSetOf<String>()
-			for (i in 0..array.length()) {
+			for (i in 0 until array.length()) {
 				set.add(array.getString(i))
 			}
 			set
-		} else defValues ?: mutableSetOf()
+		} else defValues
 	}
 
 	override fun getAll(): MutableMap<String, *> {
@@ -101,31 +100,30 @@ class FilePreferences private constructor(private val file: File) : SharedPrefer
 
 	internal fun commit(jsonObject: JSONObject, changedKeys: Set<String>): Boolean {
 		updateData(jsonObject)
-		val future = saveOnFile(jsonObject)
+		val future = saveToFileAsync(jsonObject)
 		updateListeners(changedKeys)
 		return future.get()
 	}
 
 	internal fun apply(jsonObject: JSONObject, changedKeys: Set<String>) {
 		updateData(jsonObject)
-		saveOnFile(jsonObject)
+		saveToFileAsync(jsonObject)
 		updateListeners(changedKeys)
 	}
 
-	private fun saveOnFile(jsonObject: JSONObject): FutureTask<Boolean> {
+	private fun saveToFileAsync(jsonObject: JSONObject): FutureTask<Boolean> {
 		val task = FutureTask<Boolean> {
 			try {
 				val stringData = jsonObject.toString()
-				if (!file.exists() || stringData != diskData) {
-					setStringToFile(file, stringData)
-					diskData = stringData
-				}
+				fileAccess.saveData(stringData)
+				writeCounter--
 				true
 			} catch (e: Exception) {
-				Timber.e(e, "Failed to write shared preferences on ${file.absolutePath}")
+				Timber.e(e, "Failed to write shared preferences on $fileAccess")
 				false
 			}
 		}
+		writeCounter++
 		runOn(SINGLE, task)
 		return task
 	}
@@ -156,29 +154,6 @@ class FilePreferences private constructor(private val file: File) : SharedPrefer
 
 	companion object {
 
-		private fun getStringFromFile(file: File): String {
-			val stream = FileInputStream(file)
-			val reader = BufferedReader(InputStreamReader(stream))
-			val sb = StringBuilder()
-			var line: String? = reader.readLine()
-			while (line != null) {
-				sb.append(line)
-				line = reader.readLine()
-			}
-			reader.close()
-			stream.close()
-			return sb.toString()
-		}
-
-		private fun setStringToFile(file: File, string: String) {
-			val stream = FileOutputStream(file)
-			val writer = OutputStreamWriter(stream)
-			writer.write(string)
-			stream.flush()
-			writer.close()
-			stream.close()
-		}
-
 		private val defaultFactory = object : Factory {
 
 			private val instances = mutableMapOf<File, SharedPreferences>()
@@ -190,7 +165,7 @@ class FilePreferences private constructor(private val file: File) : SharedPrefer
 			override fun create(file: File): SharedPreferences {
 				var instance = instances[file]
 				if (instance == null) {
-					instance = FilePreferences(file)
+					instance = FilePreferences(RealFileAccess(file))
 					instances[file] = instance
 				}
 				return instance

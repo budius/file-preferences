@@ -7,7 +7,6 @@ import org.junit.Test
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
-import java.io.IOException
 import java.util.*
 
 /**
@@ -22,9 +21,14 @@ class FilePreferencesTest {
 	@Before
 	fun setup() {
 		//mPrefsFile = File(InstrumentationRegistry.getTargetContext().cacheDir, "test-${UUID.randomUUID()}.json")
-		mPrefsFile = File.createTempFile("test-${UUID.randomUUID()}", ".json")
-		mPrefsFile.delete()
+		mPrefsFile = createPrefsFile("test-${UUID.randomUUID()}")
 		test = FilePreferences.create(mPrefsFile)
+	}
+
+	private fun createPrefsFile(name: String): File {
+		val prefsFile = File.createTempFile(name, ".json")
+		prefsFile.delete()
+		return prefsFile
 	}
 
 	private fun getPrefs(): SharedPreferences {
@@ -239,41 +243,42 @@ class FilePreferencesTest {
 		val rand = Random()
 		for (fi in 0..99) {
 			val prefsName = "torture_$fi"
-			val prefs = getPrefs()
+			val prefsFile = createPrefsFile(prefsName)
+			val prefs = FilePreferences.create(prefsFile)
 			prefs.edit().clear().commit()
 			val expectedMap = HashMap<String, String>()
 			for (applies in 0..2) {
 				val editor = prefs.edit()
 				for (n in 0..999) {
-					val key = Int(rand.nextInt(25)).toString()
+					val key = rand.nextInt(25).toString()
 					val value = n.toString()
 					editor.putString(key, value)
 					expectedMap[key] = value
 				}
 				editor.apply()
 			}
-			QueuedWork.waitToFinish()
-			val clonePrefsName = prefsName + "_clone"
-			val prefsFile = mContext.getSharedPrefsFile(prefsName)
-			val prefsFileClone = mContext.getSharedPrefsFile(clonePrefsName)
-			prefsFileClone.delete()
-			try {
-				val fos = FileOutputStream(prefsFileClone)
-				val fis = FileInputStream(prefsFile)
-				val buf = ByteArray(1024)
-				var n: Int
-				while ((n = fis.read(buf)) > 0) {
-					fos.write(buf, 0, n)
-				}
-				fis.close()
-				fos.close()
-			} catch (e: IOException) {
+			while ((prefs as FilePreferences).writeCounter > 0) {
+				Thread.sleep(66)
 			}
+			val clonePrefsName = prefsName + "_clone"
+			val clonePrefsFile = createPrefsFile(clonePrefsName)
+			clonePrefsFile.delete()
 
-			val clonePrefs = mContext.getSharedPreferences(clonePrefsName, Context.MODE_PRIVATE)
-			assertEquals(expectedMap, clonePrefs.getAll())
+			val fos = FileOutputStream(clonePrefsFile)
+			val fis = FileInputStream(prefsFile)
+			val buf = ByteArray(1024)
+			var n: Int = fis.read(buf)
+			while (n > 0) {
+				fos.write(buf, 0, n)
+				n = fis.read(buf)
+			}
+			fis.close()
+			fos.close()
+
+			val clonePrefs = FilePreferences.create(clonePrefsFile)
+			assertEquals(expectedMap, clonePrefs.all)
 			prefsFile.delete()
-			prefsFileClone.delete()
+			clonePrefsFile.delete()
 		}
 	}
 

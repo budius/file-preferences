@@ -21,17 +21,17 @@ android {
 		}
 	}
 
+	android {
+		lintOptions {
+			abortOnError false
+		}
+	}
 }
 
 dependencies {
-	implementation fileTree(dir: 'libs', include: ['*.jar'])
+	implementation project(':lib')
 	implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-	implementation "com.sensorberg.libs:executioner:$sb_libs_common_version"
-	implementation "com.jakewharton.timber:timber:$jakewharton_timber_version"
-
+	implementation 'junit:junit:4.12'
 	testImplementation 'junit:junit:4.12'
 	testImplementation 'org.json:json:20160810'
-	androidTestImplementation 'com.android.support.test:runner:1.0.2'
-	androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
-	androidTestImplementation "com.sensorberg.libs:testing:$sb_libs_common_version"
 }
