@@ -9,10 +9,8 @@ class PreferencesEditor(private val preferences: FilePreferences, private val da
 	private val changedKeys = mutableSetOf<String>()
 
 	override fun clear(): SharedPreferences.Editor {
-		data.keys().forEach {
-			changedKeys.add(it)
-			data.remove(it)
-		}
+		changedKeys.addAll(data.keys().asSequence())
+		changedKeys.forEach { data.remove(it) }
 		return this
 	}
 
