@@ -158,10 +158,6 @@ class FilePreferences private constructor(private val fileAccess: FileAccess) : 
 
 			private val instances = mutableMapOf<File, SharedPreferences>()
 
-			override fun create(filePath: String): SharedPreferences {
-				return create(File(filePath))
-			}
-
 			override fun create(file: File): SharedPreferences {
 				var instance = instances[file]
 				if (instance == null) {
@@ -171,7 +167,9 @@ class FilePreferences private constructor(private val fileAccess: FileAccess) : 
 				return instance
 			}
 		}
+
 		private var factory: Factory = defaultFactory
+
 		fun setFactory(factory: Factory?) {
 			if (factory == null) {
 				this.factory = defaultFactory
@@ -181,7 +179,7 @@ class FilePreferences private constructor(private val fileAccess: FileAccess) : 
 		}
 
 		fun create(filePath: String): SharedPreferences {
-			return factory.create(filePath)
+			return create(File(filePath))
 		}
 
 		fun create(file: File): SharedPreferences {
@@ -190,7 +188,6 @@ class FilePreferences private constructor(private val fileAccess: FileAccess) : 
 	}
 
 	interface Factory {
-		fun create(filePath: String): SharedPreferences
 		fun create(file: File): SharedPreferences
 	}
 }
