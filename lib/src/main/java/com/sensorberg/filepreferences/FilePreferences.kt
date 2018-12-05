@@ -9,10 +9,11 @@ import org.json.JSONObject
 import timber.log.Timber
 import java.io.File
 import java.util.concurrent.FutureTask
+import java.util.concurrent.atomic.AtomicInteger
 
 class FilePreferences private constructor(private val fileAccess: FileAccess) : SharedPreferences {
 
-	internal var writeCounter = 0
+	internal var writeCounter: AtomicInteger? = null
 
 	private val listeners = mutableSetOf<SharedPreferences.OnSharedPreferenceChangeListener>()
 
@@ -116,14 +117,14 @@ class FilePreferences private constructor(private val fileAccess: FileAccess) : 
 			try {
 				val stringData = jsonObject.toString()
 				fileAccess.saveData(stringData)
-				writeCounter--
+				writeCounter?.decrementAndGet()
 				true
 			} catch (e: Exception) {
 				Timber.e(e, "Failed to write shared preferences on $fileAccess")
 				false
 			}
 		}
-		writeCounter++
+		writeCounter?.incrementAndGet()
 		runOn(SINGLE, task)
 		return task
 	}

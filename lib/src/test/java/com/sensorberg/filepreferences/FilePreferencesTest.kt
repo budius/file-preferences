@@ -1,6 +1,8 @@
 package com.sensorberg.filepreferences
 
 import android.content.SharedPreferences
+import com.sensorberg.executioner.Executioner.SINGLE
+import com.sensorberg.executioner.Executioner.runOn
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
@@ -8,6 +10,7 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.util.*
+import java.util.concurrent.CountDownLatch
 
 /**
  * Those tests were extracted from the source:
@@ -242,6 +245,7 @@ class FilePreferencesTest {
 	@Test fun testTorture2() {
 		val rand = Random()
 		for (fi in 0..99) {
+			val waitForIt = CountDownLatch(1)
 			val prefsName = "torture_$fi"
 			val prefsFile = createPrefsFile(prefsName)
 			val prefs = FilePreferences.create(prefsFile)
@@ -257,9 +261,13 @@ class FilePreferencesTest {
 				}
 				editor.apply()
 			}
-			while ((prefs as FilePreferences).writeCounter > 0) {
-				Thread.sleep(66)
-			}
+
+			// apply() adds the save to the end of the SINGLE queue
+			// so we schedule the latch there to wait for the save
+			// that's analogous to `QueuedWork.waitToFinish();` what was in the original tests
+			runOn(SINGLE) { waitForIt.countDown() }
+			waitForIt.await()
+
 			val clonePrefsName = prefsName + "_clone"
 			val clonePrefsFile = createPrefsFile(clonePrefsName)
 			clonePrefsFile.delete()
