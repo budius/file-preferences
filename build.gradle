@@ -23,6 +23,16 @@ buildscript {
 }
 
 allprojects {
+
+	// this allows CI to force version to be snapshot
+	if (System.getenv().containsKey("IS_SNAPSHOT")) {
+		def currentName = VERSION_NAME
+		if (!currentName.endsWith("SNAPSHOT")) {
+			setProperty("VERSION_NAME", "$currentName-SNAPSHOT")
+			println("Changed VERSION_NAME to $VERSION_NAME")
+		}
+	}
+
 	repositories {
 		google()
 		jcenter()

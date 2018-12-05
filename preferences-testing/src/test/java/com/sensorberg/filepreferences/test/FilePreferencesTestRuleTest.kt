@@ -5,7 +5,7 @@ import org.junit.Assert.*
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
-import java.util.*
+import java.util.UUID
 
 class FilePreferencesTestRuleTest {
 
