@@ -28,6 +28,7 @@ dependencies {
 	implementation fileTree(dir: 'libs', include: ['*.jar'])
 	implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 	implementation "com.sensorberg.libs:executioner:$sb_libs_common_version"
+	implementation "com.sensorberg.libs:common-utils:$sb_libs_common_version"
 	implementation "com.jakewharton.timber:timber:$jakewharton_timber_version"
 
 	testImplementation 'junit:junit:4.12'

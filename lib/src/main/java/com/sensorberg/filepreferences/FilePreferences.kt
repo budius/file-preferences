@@ -1,5 +1,6 @@
 package com.sensorberg.filepreferences
 
+import android.content.Context
 import android.content.SharedPreferences
 import com.sensorberg.executioner.Executioner.POOL
 import com.sensorberg.executioner.Executioner.SINGLE
@@ -185,6 +186,10 @@ class FilePreferences private constructor(private val fileAccess: FileAccess) : 
 
 		fun create(file: File): SharedPreferences {
 			return factory.create(file)
+		}
+
+		fun migrate(context: Context, name: String, destination: SharedPreferences) {
+			PreferencesMigration.migrate(context, name, destination)
 		}
 	}
 
