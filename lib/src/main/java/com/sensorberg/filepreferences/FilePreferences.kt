@@ -188,8 +188,8 @@ class FilePreferences private constructor(private val fileAccess: FileAccess) : 
 			return factory.create(file)
 		}
 
-		fun migrate(context: Context, name: String, destination: SharedPreferences) {
-			PreferencesMigration.migrate(context, name, destination)
+		fun migrate(context: Context, name: String, destination: SharedPreferences): Boolean {
+			return PreferencesMigration.migrate(context, name, destination)
 		}
 	}
 

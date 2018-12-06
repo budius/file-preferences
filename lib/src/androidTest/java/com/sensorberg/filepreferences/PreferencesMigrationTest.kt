@@ -54,13 +54,6 @@ class PreferencesMigrationTest {
 		assertEquals(mutableSetOf("this", "is", "a", "set"), prefs.getStringSet("set", null))
 	}
 
-	@Test
-	fun is_migrated_returns_true_after_migration() {
-		val prefs = getFiletPrefs()
-		PreferencesMigration.migrate(context, name, prefs)
-		assertTrue(PreferencesMigration.isMigrated(prefs))
-	}
-
 	@Test fun preference_file_is_deleted_after_migration() {
 		getContextPrefs().edit().putBoolean("key", true).commit()
 		val file = PreferencesMigration.findPreferencesFile(context, name)!!
@@ -88,5 +81,21 @@ class PreferencesMigrationTest {
 	@Test fun find_directly_finds_the_preference_file() {
 		getContextPrefs().edit().putBoolean("key", true).commit()
 		assertNotNull(PreferencesMigration.findPreferencesFileDirectly(context, name))
+	}
+
+	@Test fun returns_true_when_there_are_values_to_migrate() {
+		getContextPrefs().edit().putBoolean("key", true).commit()
+		assertTrue(PreferencesMigration.migrate(context, name, getFiletPrefs()))
+	}
+
+	@Test fun returns_false_when_there_are_no_values_to_migrate() {
+		getContextPrefs().edit().clear().commit()
+		assertFalse(PreferencesMigration.migrate(context, name, getFiletPrefs()))
+	}
+
+	@Test fun returns_false_when_preferences_file_doesnt_exist() {
+		getContextPrefs().edit().clear().commit()
+		PreferencesMigration.findPreferencesFile(context, name)?.delete()
+		assertFalse(PreferencesMigration.migrate(context, name, getFiletPrefs()))
 	}
 }
