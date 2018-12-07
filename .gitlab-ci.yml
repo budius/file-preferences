@@ -46,3 +46,24 @@ deploy_snapshot:
   script:
     - export IS_SNAPSHOT=true
     - ./gradlew clean uploadArchives
+
+deploy_release:
+  stage: deploy
+  artifacts:
+    when: always
+    paths:
+      - preferences-testing/build/outputs/aar
+      - lib/build/outputs/aar
+  tags:
+    - kvm
+  only:
+    - tags
+  script:
+    # run emulator
+    - bash  <(curl -s https://git.sensorberg.io/snippets/5/raw)
+    # build
+    - ./gradlew clean assembleDebug assembleAndroidTest testDebugUnitTest
+    # await for emulator
+    - bash  <(curl -s https://git.sensorberg.io/snippets/4/raw)
+    - ./gradlew cAT
+    - ./gradlew uploadArchives
