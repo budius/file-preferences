@@ -1,6 +1,8 @@
 package com.sensorberg.filepreferences
 
 import android.content.SharedPreferences
+import com.sensorberg.executioner.Executioner.POOL
+import com.sensorberg.executioner.Executioner.runOn
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
@@ -87,5 +89,16 @@ class FilePreferencesExtraTest {
 		prefs.edit().clear().apply()
 		assertTrue(prefs.all.isEmpty())
 		assertTrue(waitForIt.await(1, TimeUnit.SECONDS))
+	}
+
+	@Test fun editor_clear_apply_doesnt_freeze() {
+		val waitForIt = CountDownLatch(1)
+		runOn(POOL) {
+			prefs.edit().putString("key", "value").commit()
+			prefs.edit().clear().commit()
+			prefs.edit().clear().commit()
+			waitForIt.countDown()
+		}
+		assertTrue(waitForIt.await(100, TimeUnit.MILLISECONDS))
 	}
 }
