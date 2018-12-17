@@ -4,13 +4,12 @@ import android.content.SharedPreferences
 import org.json.JSONArray
 import org.json.JSONObject
 
-class PreferencesEditor(private val preferences: FilePreferences, private val data: JSONObject) : SharedPreferences.Editor {
+class PreferencesEditor(private val preferences: FilePreferences, private var data: JSONObject) : SharedPreferences.Editor {
 
 	private val changedKeys = mutableSetOf<String>()
 
 	override fun clear(): SharedPreferences.Editor {
-		data.keys().forEach { changedKeys.add(it) }
-		changedKeys.forEach { data.remove(it) }
+		data = JSONObject()
 		return this
 	}
 

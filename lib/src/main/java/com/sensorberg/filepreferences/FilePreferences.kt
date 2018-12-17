@@ -2,8 +2,8 @@ package com.sensorberg.filepreferences
 
 import android.content.Context
 import android.content.SharedPreferences
+import com.sensorberg.executioner.Executioner
 import com.sensorberg.executioner.Executioner.POOL
-import com.sensorberg.executioner.Executioner.SINGLE
 import com.sensorberg.executioner.Executioner.UI
 import com.sensorberg.executioner.Executioner.runOn
 import org.json.JSONObject
@@ -126,7 +126,7 @@ class FilePreferences private constructor(private val fileAccess: FileAccess) : 
 			}
 		}
 		writeCounter?.incrementAndGet()
-		runOn(SINGLE, task)
+		runOn(single, task)
 		return task
 	}
 
@@ -155,6 +155,8 @@ class FilePreferences private constructor(private val fileAccess: FileAccess) : 
 	}
 
 	companion object {
+
+		internal val single = Executioner.newSingleExecutioner()
 
 		private val defaultFactory = object : Factory {
 

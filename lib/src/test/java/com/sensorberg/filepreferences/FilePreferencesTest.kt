@@ -1,7 +1,6 @@
 package com.sensorberg.filepreferences
 
 import android.content.SharedPreferences
-import com.sensorberg.executioner.Executioner.SINGLE
 import com.sensorberg.executioner.Executioner.runOn
 import org.junit.Assert.*
 import org.junit.Before
@@ -262,10 +261,10 @@ class FilePreferencesTest {
 				editor.apply()
 			}
 
-			// apply() adds the save to the end of the SINGLE queue
+			// apply() adds the save to the end of the single queue
 			// so we schedule the latch there to wait for the save
 			// that's analogous to `QueuedWork.waitToFinish();` what was in the original tests
-			runOn(SINGLE) { waitForIt.countDown() }
+			runOn(FilePreferences.single) { waitForIt.countDown() }
 			waitForIt.await()
 
 			val clonePrefsName = prefsName + "_clone"
