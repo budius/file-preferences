@@ -28,7 +28,7 @@ allprojects {
 	if (System.getenv().containsKey("IS_SNAPSHOT")) {
 		def currentName = VERSION_NAME
 		if (!currentName.endsWith("SNAPSHOT")) {
-			setProperty("VERSION_NAME", "$currentName-SNAPSHOT")
+			setProperty("VERSION_NAME", "$currentName-SNAPSHOT".toString())
 			println("Changed VERSION_NAME to $VERSION_NAME")
 		}
 	}
