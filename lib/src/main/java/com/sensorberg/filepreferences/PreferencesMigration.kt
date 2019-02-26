@@ -4,7 +4,7 @@ import android.annotation.TargetApi
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.Build
-import android.support.v4.content.ContextCompat
+import androidx.core.content.ContextCompat
 import com.sensorberg.common.edit
 import timber.log.Timber
 import java.io.File
@@ -64,8 +64,7 @@ internal object PreferencesMigration {
 
 	internal fun findPreferencesFileRecursively(context: Context, name: String): File? {
 		val rootDir = ContextCompat.getDataDir(context)
-		rootDir.walk(FileWalkDirection.TOP_DOWN)
-			.forEach {
+		rootDir?.walk(FileWalkDirection.TOP_DOWN)?.forEach {
 				if (it.name == "$name.xml") {
 					return it
 				}
