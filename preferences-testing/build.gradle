@@ -1,6 +1,5 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
-apply from: '../upload.gradle'
 
 android {
 	compileSdkVersion android_compileSdkVersion
@@ -30,9 +29,21 @@ android {
 }
 
 dependencies {
-	implementation project(':lib')
+	implementation project(':preferences')
 	implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 	implementation 'junit:junit:4.12'
 	testImplementation 'junit:junit:4.12'
 	testImplementation 'org.json:json:20160810'
+}
+
+apply plugin: "com.vanniktech.maven.publish"
+mavenPublish {
+	targets {
+		uploadArchives {
+			signing = false
+			releaseRepositoryUrl = findProperty("PREFERENCES_TESTING_URL", null)
+			repositoryUsername = findProperty("MAVEN_JCENTER_USERNAME", null)
+			repositoryPassword = findProperty("MAVEN_JCENTER_PASSWORD", null)
+		}
+	}
 }

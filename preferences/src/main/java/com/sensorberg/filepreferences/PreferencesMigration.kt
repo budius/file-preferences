@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.os.Build
 import androidx.core.content.ContextCompat
-import com.sensorberg.common.edit
 import timber.log.Timber
 import java.io.File
 
@@ -20,7 +19,7 @@ internal object PreferencesMigration {
 
 		var anyValueMigrated = false
 		val oldPrefs = context.getSharedPreferences(name, Context.MODE_PRIVATE)
-		destination.edit {
+		with(destination.edit()){
 			for (entry in oldPrefs.all.entries) {
 				anyValueMigrated = true
 				val key = entry.key
@@ -37,6 +36,7 @@ internal object PreferencesMigration {
 					else -> throw IllegalArgumentException("Unexpected type ${value::class.java.simpleName}")
 				}
 			}
+			commit()
 		}
 		oldPrefs.edit().clear().commit()
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {

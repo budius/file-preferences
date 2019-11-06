@@ -4,21 +4,19 @@ ext {
 	android_targetSdkVersion = 28
 	android_minSdkVersion = 19
 
-	sb_libs_common_version = '0.5.0'
-	android_support_version = '1.0.0'
 	jakewharton_timber_version = '4.6.0'
 }
 
 buildscript {
-	ext.kotlin_version = '1.3.21'
+	ext.kotlin_version = '1.3.50'
 	repositories {
 		google()
 		jcenter()
 	}
 	dependencies {
-		classpath 'com.android.tools.build:gradle:3.3.1'
+		classpath 'com.android.tools.build:gradle:3.5.2'
 		classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-		classpath 'com.vanniktech:gradle-maven-publish-plugin:0.7.0'
+		classpath 'com.vanniktech:gradle-maven-publish-plugin:0.8.0'
 	}
 }
 
@@ -36,12 +34,13 @@ allprojects {
 	repositories {
 		google()
 		jcenter()
+		// TODO: remove this after jcenter-bintray link
+		maven { url "https://dl.bintray.com/sensorberg/maven" }
 	}
 }
 
 apply from: 'https://raw.githubusercontent.com/sensorberg-dev/gradle-scripts/master/common-def.gradle'
 apply from: 'https://raw.githubusercontent.com/sensorberg-dev/gradle-scripts/master/apply-code-style-to-project.gradle'
-apply from: 'https://raw.githubusercontent.com/sensorberg-dev/gradle-scripts/master/add_private_maven_repo_to_project.gradle'
 
 task clean(type: Delete) {
 	delete rootProject.buildDir

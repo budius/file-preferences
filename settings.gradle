@@ -1,1 +1,1 @@
-include ':app', ':lib', ':preferences-testing'
+include ':app', ':preferences', ':preferences-testing'
